@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <meta http-equiv="Expires" content="0">
+  <!--
+    Copyright (C) 2025 @kiyu4776
+    This file is proprietary and confidential.
+    Unauthorized reproduction or distribution is prohibited.
+  -->
+</head>
+<style>
+  .footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+    color: #666;
+    font-size: 14px;
+  }
+</style>
+
+<body>
+  <input type="password" id="keyInput" placeholder="パスワードを入力">
+  <button onclick="CheckKey()">送信</button>
+  <div class="footer">2025 @kiyu4776</div>
+  <script type="module">
+  /*  import devtools from 'https://cdn.jsdelivr.net/npm/devtools-detect@4.0.2/index.min.js';
+
+    function CheckDevOpen() {
+      if (devtools.isOpen) {
+        window.location.href = 'https://www.google.com';
+      }
+    }
+    CheckDevOpen();
+    window.addEventListener('devtoolschange', e => {
+      if (e.detail.isOpen) {
+        window.location.href = 'https://www.google.com';
+      }
+    });
+    window.addEventListener('pageshow', event => {
+      CheckDevOpen();
+    });*/
+  </script>
+
+  <script>
+    async function CheckKey() {
+      const key = document.getElementById('keyInput').value;
+
+      try {
+        const res = await fetch("/api/check-key", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key })
+        });
+
+        if (!res.ok) {
+          throw new Error();
+        }
+        const data = await res.json();
+        if (data.ok) {
+          location.href = "secure.html";
+        } else {
+          alert("パスワードが間違っています");
+        }
+      } catch (error) {
+        alert("パスワードが間違っています");
+      }
+    }
+  </script>
+</body>
+
+</html>

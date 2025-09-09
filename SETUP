@@ -1,0 +1,67 @@
+
+
+
+cmdで
+
+cd C:\Users\miani\Downloads\R2-node\test-main
+npm install
+
+ctrl + @
+
+node app.js
+
+http://localhost:8080
+
+停止 ctrl + c
+
+--------------------------------------------------------------------------
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Set-ExecutionPolicy -ExecutionPolicy Restricted -Scope CurrentUser
+
+
+
+console.log() - 通常ログ
+
+console.info() - 情報ログ
+
+console.warn() - 警告ログ
+
+console.error() - エラーログ
+
+
+
+
+フロントを改ざんしても意味がない
+→ 例えば index.html の JavaScript を書き換えて直接 secure.html に飛んでも、サーバー側の /Script.html が JWT を検証するので弾かれる。
+
+secure.html を直リンクしても意味がない
+→ 中身はただの「/Script.html をフェッチするスクリプト」。結局トークンが必要。
+
+TOKEN を偽造できるか？
+→ サーバーは jwt.verify(token, SECRET) で検証している。
+→ SECRET を知らない限り、有効なトークンは作れない。
+→ SECRET が漏洩しない限り突破は不可。
+
+Webhook ログで監視されている
+→ 失敗や不正アクセスが全部 Discord に送信されるため、ブルートフォースやリクエスト改ざんもすぐバレる。
+
+
+  <script type="module">
+    import devtools from 'https://cdn.jsdelivr.net/npm/devtools-detect@4.0.2/index.min.js';
+
+    function CheckDevOpen() {
+      if (devtools.isOpen) {
+        window.location.href = 'https://www.google.com';
+      }
+    }
+    CheckDevOpen();
+    window.addEventListener('devtoolschange', e => {
+      if (e.detail.isOpen) {
+        window.location.href = 'https://www.google.com';
+      }
+    });
+    window.addEventListener('pageshow', event => {
+      CheckDevOpen();
+    });
+  </script>

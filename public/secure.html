@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!--
+    Copyright (C) 2025 @kiyu4776
+    This file is proprietary and confidential.
+    Unauthorized reproduction or distribution is prohibited.
+  -->
+  <meta charset="UTF-8">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <meta http-equiv="Expires" content="0">
+  <title>認証中...</title>
+</head>
+
+<body>
+
+
+
+  <script>
+    fetch("/Script.html", {
+      credentials: "include"
+    }).then(async res => {
+      if (res.ok) {
+        const html = await res.text();
+        document.open();
+        document.write(html);
+        document.close();
+      } else {
+        alert("無効または期限切れです");
+        location.href = "index.html";
+      }
+    }).catch(err => {
+      console.error("エラー:", err);
+      location.href = "index.html";
+    });
+  </script>
+</body>
+
+</html>

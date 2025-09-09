@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <!--
+    Copyright (C) 2025 @kiyu4776
+    This file is proprietary and confidential.
+    Unauthorized reproduction or distribution is prohibited.
+  -->
+    <meta charset="UTF-8">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-store">
+    <meta http-equiv="Expires" content="0">
+</head>
+<style>
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: rgba(22, 22, 22, 0.8);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    #window-container {
+        opacity: 0.8;
+        font-size: 13px;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    #drag-bar {
+        height: 24px;
+        background-color: rgba(41, 74, 122, 0.8);
+        cursor: move;
+        -webkit-app-region: drag;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .drag-bar-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        -webkit-app-region: no-drag;
+        font-weight: normal;
+    }
+
+    .version-info {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 12px;
+        user-select: none;
+    }
+
+    .toggle-button {
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 12px;
+        user-select: none;
+        font-weight: bold;
+    }
+
+    #content-wrapper {
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+    }
+
+    #content {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.5;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    b,
+    strong {
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    #resize-handle {
+        position: absolute;
+        right: 2px;
+        bottom: 2px;
+        width: 16px;
+        height: 16px;
+        cursor: se-resize;
+        z-index: 10;
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 4px 0 0 0;
+    }
+
+    .collapsed #content-wrapper,
+    .collapsed #resize-handle {
+        display: none;
+    }
+
+    .collapsed {
+        height: 24px !important;
+    }
+
+    #content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #content::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+    }
+
+    #content::-webkit-scrollbar-track {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .menu-tabs {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px;
+        position: sticky;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(30, 30, 30, 0.9);
+        z-index: 1000;
+        padding: 12px 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        transition: opacity 0.2s ease;
+        backdrop-filter: blur(5px);
+    }
+
+    .menu-tabs button {
+        margin-right: 10px;
+        padding: 8px 15px;
+        cursor: pointer;
+        border: 1px solid #3498db;
+        background: rgba(45, 45, 45, 0.8);
+        color: #3498db;
+        border-radius: 6px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .menu-tabs button.active,
+    .menu-tabs button:hover {
+        background-color: rgba(52, 152, 219, 0.8);
+        color: #ffffff;
+    }
+
+    .menu-content {
+        margin: 10px;
+        padding-right: 10px;
+        background: rgba(30, 30, 30, 0.8);
+        border-radius: 8px;
+        border: 1px solid rgba(51, 51, 51, 0.5);
+        overflow-y: auto;
+        padding-bottom: 10px;
+        padding-top: 10px;
+        backdrop-filter: blur(5px);
+        display: none;
+    }
+
+    .menu-content.active {
+        display: block;
+    }
+
+    .script-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        background: rgba(45, 45, 45, 0.7);
+        padding: 10px 15px;
+        border-radius: 8px;
+        justify-content: space-between;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(68, 68, 68, 0.3);
+    }
+
+    .script-name {
+        flex: 0 0 auto;
+        min-width: 120px;
+        white-space: nowrap;
+        font-weight: bold;
+        color: #3498db;
+    }
+
+    .script-input {
+        flex: 1;
+        margin: 0 12px;
+    }
+
+    .script-input input {
+        width: 100%;
+        padding: 6px 10px;
+        font-size: 14px;
+        border: 1px solid rgba(68, 68, 68, 0.5);
+        border-radius: 6px;
+        background-color: rgba(51, 51, 51, 0.7);
+        color: #e0e0e0;
+        transition: border 0.3s ease;
+    }
+
+    .script-input input:focus {
+        border-color: rgba(52, 152, 219, 0.7);
+        outline: none;
+    }
+
+    .script-button button {
+        background-color: rgba(52, 152, 219, 0.8);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background-color 0.3s ease;
+    }
+
+    .script-button button:hover {
+        background-color: rgba(41, 128, 185, 0.9);
+    }
+
+    #toast {
+        visibility: hidden;
+        min-width: 200px;
+        background-color: rgba(51, 51, 51, 0.9);
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 12px;
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        font-size: 14px;
+        opacity: 0;
+        transition: opacity 0.5s ease, visibility 0.5s;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(52, 152, 219, 0.3);
+    }
+
+    #toast.show {
+        visibility: visible;
+        opacity: 0.9;
+    }
+
+    .imenu {
+        background: rgba(37, 37, 37, 0.8);
+        border-radius: 12px;
+        padding: 20px 25px;
+        font-size: 15px;
+        color: rgba(176, 176, 176, 0.9);
+        line-height: 1.7;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        margin: 10px;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+
+    .imenu strong {
+        color: #3498db;
+        font-weight: 600;
+    }
+
+    .imenu a {
+        color: rgba(93, 156, 236, 0.9);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .imenu a:hover {
+        color: #5d9cec;
+        text-decoration: underline;
+    }
+
+    .exit {
+        background-color: rgba(93, 156, 236, 0.9);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        font-size: 13px;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background-color 0.3s ease;
+        width: 50%;
+        max-width: 100px;
+        margin: 12px 0 0 15px;
+        display: block;
+    }
+</style>
+</head>
+
+<body>
+    <div id="window-container">
+        <div id="drag-bar"></div>
+        <div id="content-wrapper">
+            <div id="content">
+                <div class="menu-tabs">
+                    <button id="menu-btn-1" class="active" onclick="showMenu(1)">車系</button>
+                    <button id="menu-btn-2" onclick="showMenu(2)">その他</button>
+                    <button id="menu-btn-3" onclick="showMenu(3)">荒らし系</button>
+                    <button id="menu-btn-4" onclick="showMenu(4)">設定</button>
+                </div>
+
+                <div id="menu1" class="menu-content active">
+                    <div class="script-row">
+                        <div class="script-name">本体メッキ</div>
+                        <div class="script-input">
+                            <input id="script1-value" type="text" placeholder="編集値" value="5.0" />
+                        </div>
+                        <div class="script-button">
+                            <button onclick="main(1)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">ホイールメッキ</div>
+                        <div class="script-input">
+                            <input id="script2-value" type="text" placeholder="編集値" value="5.0" />
+                        </div>
+                        <div class="script-button">
+                            <button onclick="main(2)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">鬼キャン</div>
+                        <div class="script-input">
+                            <input id="script3-value" type="text" placeholder="編集値" value="-20.0" />
+                        </div>
+                        <div class="script-button">
+                            <button onclick="main(3)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">移植</div>
+                        <div class="script-input">
+                            <input id="script4-value" type="text" placeholder="編集値" value="69" />
+                        </div>
+                        <div class="script-button">
+                            <button onclick="main(4)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">移植</div>
+                        <div class="script-input">
+                            <input id="script5-value" type="text" placeholder="編集値" value="69" />
+                        </div>
+                        <div class="script-button">
+                            <button onclick="main(5)">実行</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="menu2" class="menu-content">
+                    <div class="script-row">
+                        <div class="script-name">クラウンアンロック</div>
+                        <div class="script-button">
+                            <button onclick="main(6)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">ロンネ</div>
+                        <div class="script-button">
+                            <button onclick="main(7)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">チャット文字制限解除</div>
+                        <div class="script-button">
+                            <button onclick="main(8)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">パーツの値確認</div>
+                        <div class="script-button">
+                            <button onclick="main(9)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">空中歩行</div>
+                        <div class="script-button">
+                            <button onclick="toggle(this, 10)">OFF</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">強制リスポーン</div>
+                        <div class="script-button">
+                            <button onclick="main(11)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">レッカー無効</div>
+                        <div class="script-button">
+                            <button onclick="main(12)">実行</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="menu3" class="menu-content">
+                    <div class="script-row">
+                        <div class="script-name">壁貫通</div>
+                        <div class="script-button">
+                            <button onclick="main(13)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">パス解析</div>
+                        <div class="script-button">
+                            <button onclick="main(14)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">売り場額</div>
+                        <div class="script-input">
+                            <input id="script14-value" type="text" placeholder="編集値" value="-1" />
+                        </div>
+                        <div class="script-button">
+                            <button onclick="main(15)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">Bobol</div>
+                        <div class="script-button">
+                            <button onclick="main(16)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">座標変更 z</div>
+                        <div class="script-input">
+                            <input id="script16-value" type="text" placeholder="編集値" value="-64" />
+                        </div>
+                        <div class="script-button">
+                            <button onclick="main(17)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">座標変更 y</div>
+                        <div class="script-input">
+                            <input id="script17-value" type="text" placeholder="編集値" value="50" />
+                        </div>
+                        <div class="script-button">
+                            <button onclick="main(18)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">座標変更 x</div>
+                        <div class="script-input">
+                            <input id="script18-value" type="text" placeholder="編集値" value="50" />
+                        </div>
+                        <div class="script-button">
+                            <button onclick="main(19)">実行</button>
+                        </div>
+                    </div>
+                    <div class="script-row">
+                        <div class="script-name">プレイヤーリストから非表示</div>
+                        <div class="script-button">
+                            <button onclick="main(20)">実行</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="menu4" class="menu-content">
+                    <div class="imenu">
+                        <strong>スクリプト作者:</strong>きゆ<a href="https://www.tiktok.com/@kiyu47764">@kiyu4776</a><br />
+                        <strong>注意事項:</strong><br />
+                        ・スクリプトを改変する時は<a href="https://github.com/calcsupv/h5-"
+                            target="_blank">github</a>のテンプレから1から作ってください<br />1から<br />値も自分で探せ<br />
+                    </div>
+                    <button class="exit" onclick="exit()">終了</button>
+                </div>
+            </div>
+        </div>
+        <div id="resize-handle"></div>
+        <div id="toast"></div>
+    </div>
+
+    <script>
+        let winX = 100, winY = 50, winW = 250, winH = 250;
+        let isResizing = false;
+        let isCollapsed = false;
+        let originalHeight = winH;
+
+        function updateWindow() {
+            setWindowRect(winX, winY, winW, winH);
+            setWindowDrag(0, 0, winW, 24);
+        }
+
+        function handlePositionChange(x, y) {
+            winX = x;
+            winY = y;
+            updateWindow();
+        }
+
+        function toggleCollapse() {
+            const container = document.getElementById('window-container');
+            const toggleBtn = document.querySelector('.toggle-button');
+
+            isCollapsed = !isCollapsed;
+
+            if (isCollapsed) {
+                container.classList.add('collapsed');
+                originalHeight = winH;
+                winH = 24;
+                toggleBtn.textContent = '▶';
+            } else {
+                container.classList.remove('collapsed');
+                winH = originalHeight;
+                toggleBtn.textContent = '▼';
+            }
+
+            updateWindow();
+        }
+
+        function startResize(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            isResizing = true;
+
+            const startX = e.clientX || e.touches?.[0]?.clientX;
+            const startY = e.clientY || e.touches?.[0]?.clientY;
+            const startW = winW;
+            const startH = winH;
+
+            function onMove(ev) {
+                if (!isResizing) return;
+
+                const clientX = ev.clientX || ev.touches?.[0]?.clientX;
+                const clientY = ev.clientY || ev.touches?.[0]?.clientY;
+
+                winW = Math.max(300, startW + (clientX - startX));
+                winH = Math.max(isCollapsed ? 24 : 200, startH + (clientY - startY));
+
+                if (!isCollapsed) originalHeight = winH;
+
+                updateWindow();
+            }
+
+            function stopResize() {
+                isResizing = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', stopResize);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', stopResize);
+            }
+
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', stopResize);
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', stopResize);
+        }
+
+        window.onload = () => {
+            setWindowRect(winX, winY, winW, winH);
+            setWindowDrag(0, 0, winW, 24);
+            setWindowTouch(false);
+            setWindowVisible(true);
+
+            const toggleBtn = document.createElement('div');
+            toggleBtn.className = 'toggle-button';
+            toggleBtn.textContent = '▼';
+            toggleBtn.addEventListener('click', toggleCollapse);
+
+            const versionInfo = document.createElement('div');
+            versionInfo.className = 'version-info';
+            versionInfo.innerHTML = 'v0.2.9.5 By <b>@kiyu4776</b> @r2 mov #1, #4';
+
+            const dragBarLeft = document.createElement('div');
+            dragBarLeft.className = 'drag-bar-left';
+            dragBarLeft.appendChild(toggleBtn);
+            dragBarLeft.appendChild(versionInfo);
+
+            document.getElementById('drag-bar').appendChild(dragBarLeft);
+
+            document.getElementById('resize-handle').addEventListener('mousedown', startResize);
+            document.getElementById('resize-handle').addEventListener('touchstart', startResize, { passive: false });
+
+            document.getElementById('menu1').style.display = 'block';
+            document.querySelector('#menu-btn-1').classList.add('active');
+        };
+
+        function showMenu(n) {
+            const contents = document.querySelectorAll('.menu-content');
+            const buttons = document.querySelectorAll('.menu-tabs button');
+
+            contents.forEach((content, index) => {
+                content.style.display = (index + 1 === n) ? 'block' : 'none';
+            });
+
+            buttons.forEach((btn, index) => {
+                btn.classList.toggle('active', index + 1 === n);
+            });
+
+            document.getElementById('content').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toast(message) {
+            const toastEl = document.getElementById('toast');
+            toastEl.textContent = message;
+            toastEl.classList.add('show');
+
+            setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, 2500);
+        }
+
+        function main(scriptNumber) {
+            let value = null;
+            const inputEl = document.getElementById('script' + scriptNumber + '-value');
+
+            if (inputEl) {
+                value = inputEl.value.trim();
+                if (!value) {
+                    alert('error\n' + getScriptName(scriptNumber) + ': 編集値を入力してください');
+                    inputEl.focus();
+                    return;
+                }
+                if (!isValidNumber(value)) {
+                    alert('error\n' + getScriptName(scriptNumber) + ': 無効な数値形式です');
+                    inputEl.focus();
+                    return;
+                }
+            }
+
+            const v = inputEl ? value : null;
+            const fn = window['run' + scriptNumber];
+
+            if (typeof fn === "function") {
+                fn(v);
+            } else {
+                alert('無効なスクリプト番号です');
+            }
+        }
+
+        function isValidNumber(value) {
+            return Number.isFinite(Number(value));
+        }
+
+        function getScriptName(scriptNumber) {
+            const rows = document.querySelectorAll('.script-row');
+            for (const row of rows) {
+                const btn = row.querySelector('.script-button button');
+                if (!btn) continue;
+
+                const onclick = btn.getAttribute('onclick');
+                if (!onclick) continue;
+
+                const m = onclick.match(/main\((\d+)\)/);
+                if (m && Number(m[1]) === scriptNumber) {
+                    const nameEl = row.querySelector('.script-name');
+                    if (nameEl) return nameEl.textContent.trim();
+                }
+
+                const m2 = onclick.match(/toggle\(.*?,\s*(\d+)\)/);
+                if (m2 && Number(m2[1]) === scriptNumber) {
+                    const nameEl = row.querySelector('.script-name');
+                    if (nameEl) return nameEl.textContent.trim();
+                }
+            }
+
+            return 'スクリプト' + scriptNumber;
+        }
+
+        function toggle(button, scriptId) {
+            const isActive = button.classList.toggle("active");
+
+            if (isActive) {
+                button.textContent = "ON";
+                main(scriptId);
+            } else {
+                button.textContent = "OFF";
+                stop(scriptId);
+            }
+        }
+
+        function stop(scriptId) {
+            const fn = window['stop' + scriptId];
+            if (typeof fn === 'function') {
+                fn();
+            } else {
+                alert(getScriptName(scriptId) + ' 停止関数が見つかりません');
+            }
+        }
+
+        function exit() {
+            toast('スクリプトを終了しています...');
+            WindowVisible();
+            window.open("https://calcsupv.github.io/h5-/tool/index-jp.html");
+        }
+
+        function WindowVisible() {
+        }
+
+        const ICON_NORMAL = 'https://raw.githubusercontent.com/calcsupv/h5-/main/icon/icon.jpg';
+        const ICON_RUNNING = 'https://raw.githubusercontent.com/calcsupv/h5-/main/icon/icon_running.jpg';
+
+        function RunIcon() {
+            const wrap = fn => function (...args) {
+                setButtonImage(ICON_RUNNING);
+                try {
+                    const result = fn.apply(this, args);
+                    if (result && typeof result.then === 'function') {
+                        return result.finally(() => setButtonImage(ICON_NORMAL));
+                    }
+                    setButtonImage(ICON_NORMAL);
+                    return result;
+                } catch (e) {
+                    setButtonImage(ICON_NORMAL);
+                    throw e;
+                }
+            };
+
+            ["run", "stop"].forEach(prefix => {
+                for (const key in window) {
+                    if (typeof window[key] === 'function' && key.startsWith(prefix) && /^\d+$/.test(key.slice(prefix.length))) {
+                        window[key] = wrap(window[key]);
+                    }
+                }
+            });
+        }
+
+        window.onload = () => {
+            window.addEventListener('positionChanged', (e) => {
+                updateWindowPosition(e.detail.x, e.detail.y);
+            });
+
+            setWindowRect(winX, winY, winW, winH);
+            setWindowDrag(0, 0, winW, 24);
+
+            const toggleBtn = document.createElement('div');
+            toggleBtn.className = 'toggle-button';
+            toggleBtn.textContent = '▼';
+            toggleBtn.addEventListener('click', toggleCollapse);
+
+            const versionInfo = document.createElement('div');
+            versionInfo.className = 'version-info';
+            versionInfo.innerHTML = 'v0.2.9.8 By <b>kiyu4776</b> @r2';
+
+            const dragBarLeft = document.createElement('div');
+            dragBarLeft.className = 'drag-bar-left';
+            dragBarLeft.appendChild(toggleBtn);
+            dragBarLeft.appendChild(versionInfo);
+
+            const dragBar = document.getElementById('drag-bar');
+            dragBar.appendChild(dragBarLeft);
+
+            const resizeHandle = document.getElementById('resize-handle');
+            resizeHandle.addEventListener('mousedown', startResize);
+            resizeHandle.addEventListener('touchstart', startResize, { passive: false });
+
+            RunIcon();
+
+            document.getElementById('menu1').style.display = 'block';
+            document.querySelector('#menu-btn-1').classList.add('active');
+
+            const menuTabs = document.querySelector('.menu-tabs');
+            document.querySelectorAll('input, textarea').forEach(el => {
+                el.addEventListener('focus', () => {
+                    menuTabs.style.opacity = '0.2';
+                });
+                el.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        menuTabs.style.opacity = '1';
+                    }, 100);
+                });
+            });
+        };
+
+        function run1(v) {
+            h5gg.clearResults();
+            h5gg.searchNumber("4575657222559105024", "I32", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (const { address } of results) {
+                const base = Number(address) + 0xFC;
+                for (let offset = -8; offset <= 8; offset += 4) {
+                    const addrs = Array.from({ length: 4 }, (_, j) => base + offset + 4 * j);
+                    const vals = addrs.map(addr => Number(h5gg.getValue(addr, "F32")));
+                    if (vals.every(val => !isNaN(val) && (val === 0 || (val >= 1e-10 && val <= 30)))) {
+                        addrs.forEach(addr => h5gg.setValue(addr, v, "F32"));
+                        break;
+                    }
+                }
+            }
+            h5gg.clearResults();
+            toast(getScriptName(1) + ' 完了');
+        }
+
+        function run2(v) {
+            h5gg.clearResults();
+            h5gg.searchNumber("50465865729", "I32", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (const { address } of results) {
+                const base = Number(address) - 0xA4;
+                for (let offset = -8; offset <= 8; offset += 4) {
+                    const addrs = Array.from({ length: 4 }, (_, j) => base + offset + 4 * j);
+                    const vals = addrs.map(addr => Number(h5gg.getValue(addr, "F32")));
+                    if (vals.every(val => !isNaN(val) && (val === 0 || (val >= 1e-10 && val <= 30)))) {
+                        addrs.forEach(addr => h5gg.setValue(addr, v, "F32"));
+                        break;
+                    }
+                }
+            }
+            h5gg.clearResults();
+            toast(getScriptName(2) + ' 完了');
+        }
+
+        function run3(v) {
+            h5gg.clearResults();
+            h5gg.searchNumber('5006313936968761344', 'I64', '0x0', '0x200000000');
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (let i = 0; i < results.length; i++) {
+                const base = Number(results[i].address) + 0x4c;
+                const val = Number(h5gg.getValue(base.toString(), 'F32'));
+                if (val <= 0 && val >= -360 && (val === 0 || Math.abs(val) >= 1e-9)) {
+                    h5gg.setValue(base.toString(), v, 'F32');
+                }
+            }
+            h5gg.clearResults();
+            toast(getScriptName(3) + ' 完了');
+        }
+
+        function run4(v) {
+            alert('パーツを選択してから実行');
+            h5gg.clearResults();
+            h5gg.searchNumber("4575657222496845824", "I64", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (let i = 0; i < results.length; i++) {
+                const base = Number(results[i].address);
+                const tmp = base + 0x268;
+                h5gg.setValue(tmp, v, "I32");
+            }
+            h5gg.clearResults();
+            toast(getScriptName(4) + ' 完了');
+        }
+
+        function run5(v) {
+            h5gg.clearResults();
+            h5gg.searchNumber("-42949672960000", "I64", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (let i = 0; i < results.length; i++) {
+                const base = Number(results[i].address);
+                const target = base + 0xCC;
+                const val = Number(h5gg.getValue(target, "I32"));
+
+                if (!isNaN(val) && val !== 0 && val >= -2 && val <= 75) {
+                    h5gg.setValue(target, v, "I32");
+                }
+            }
+            h5gg.clearResults();
+            toast(`${getScriptName(5)} 完了`);
+        }
+
+        function run6() {
+            h5gg.clearResults();
+            h5gg.searchNumber('-4294967078', 'I64', '0x000000000', '0x200000000');
+            h5gg.editAll('-4294967079', 'I64');
+            h5gg.clearResults();
+            toast(getScriptName(6) + ' 完了');
+        }
+
+        function run7() {
+            h5gg.clearResults();
+            h5gg.searchNumber("4543443241174818784", "I32", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            h5gg.searchNearby('12', 'I32', '0x100');
+            h5gg.searchNumber("12", "I32", "0x0", "0x200000000");
+            h5gg.editAll('-1', 'I32');
+            h5gg.clearResults();
+            toast(getScriptName(7) + ' 完了');
+        }
+
+        function run8() {
+            h5gg.clearResults();
+            h5gg.searchNumber("25769804032", "I32", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            h5gg.searchNearby('100', 'I32', '0x100');
+            h5gg.searchNumber("100", "I32", "0x0", "0x200000000");
+            h5gg.editAll('-1', 'I32');
+            h5gg.clearResults();
+            toast(getScriptName(8) + ' 完了');
+        }
+
+        function run9() {
+            alert('パーツを選択してから実行');
+            h5gg.clearResults();
+            h5gg.searchNumber("4575657222496845824", "I64", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            const i = {};
+            for (const { address } of results) {
+                const val = Number(h5gg.getValue(Number(address) + 0x268, "I32"));
+                if (val >= 1 && val <= 999) {
+                    i[val] = (i[val] || 0) + 1;
+                }
+            }
+            h5gg.clearResults();
+            const uniqueIds = Object.entries(i)
+                .filter(([_, count]) => count === 1)
+                .map(([id]) => id);
+            if (uniqueIds.length) {
+                alert(`ID: ${uniqueIds.join("\n")}`);
+                toast(`${getScriptName(9)} 完了\n\nID: ${uniqueIds.join(", ")}`);
+            } else {
+                alert("値が見つかりませんでした。");
+            }
+        }
+
+        function run10() {
+            h5gg.clearResults();
+            h5gg.searchNumber('-9.8', 'F32', '0x000000000', '0x200000000');
+            h5gg.editAll('0.01212121', 'F32');
+            toast(`${getScriptName(10)} 完了`);
+        }
+
+        function stop10() {
+            h5gg.clearResults();
+            h5gg.searchNumber('0.01212121', 'F32', '0x000000000', '0x200000000');
+            h5gg.editAll('-9.8', 'F32');
+            toast(`${getScriptName(10)} 無効化 完了`);
+        }
+
+        function run11() {
+            h5gg.clearResults();
+            h5gg.searchNumber("8403089831969947648", "I64", "0x50000000", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (const r of results) {
+                h5gg.setValue(Number(r.address) + 0x64, -99, "F32");
+            }
+            h5gg.clearResults();
+            toast(getScriptName(11) + ' 完了');
+        }
+
+        function run12() {
+            h5gg.clearResults();
+            h5gg.searchNumber("4887235805355650227", "I64", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (const r of results) {
+                h5gg.setValue(Number(r.address) + 0x0, 1, "I32");
+            }
+            h5gg.clearResults();
+            toast(getScriptName(12) + ' 完了');
+        }
+
+        function run13() {
+            h5gg.clearResults();
+            h5gg.searchNumber("49", "F32", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            h5gg.searchNearby('-10', 'F32', '0x16');
+            h5gg.editAll('99', 'F32');
+            h5gg.clearResults();
+            toast(getScriptName(13) + ' 完了');
+        }
+
+        function run14() {
+            h5gg.clearResults();
+            h5gg.searchNumber("4535389738344906752", "I64", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            const j = [];
+            for (let i = 0; i < results.length; i++) {
+                const tmp = Number(results[i].address) + 0x4C;
+                const val = Number(h5gg.getValue(tmp, "I32"));
+                if (val >= 1 && val <= 9999) j.push(val);
+            }
+            h5gg.clearResults();
+            if (j.length) {
+                alert("ルームパスワード:\n" + j.join("\n"));
+                toast(getScriptName(14) + ' 完了');
+            } else {
+                alert("パスワードが見つかりませんでした。\nパスワードが設定されていない可能性があります。");
+            }
+        }
+
+        function run15(v) {
+            const tmp = [
+                { value: "5020763491123680715", offset: 0x284 },
+                { value: "5196375486898191353", offset: 0x284 },
+                { value: "7661258481366876671", offset: 0x284 },
+                { value: "6412269033482941622", offset: 0x144 },
+                { value: "4880258008279034061", offset: 0x144 },
+                { value: "4317889481629514139", offset: 0x144 },
+            ];
+            for (const { value, offset } of tmp) {
+                h5gg.clearResults();
+                h5gg.searchNumber(value, "I64", "0x0", "0x200000000");
+                const results = h5gg.getResults(h5gg.getResultsCount());
+                if (!results.length) continue;
+                for (const r of results) {
+                    const editAddr = Number(r.address) + offset;
+                    h5gg.setValue(editAddr, v, "I32");
+                    h5gg.setValue(editAddr - 4, 0, "I32");
+                }
+            }
+            h5gg.clearResults();
+            toast(getScriptName(15) + ' 完了');
+        }
+
+        function run16() {
+            h5gg.clearResults();
+            h5gg.searchNumber("1152729088", "I64", "0x0", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (const r of results) {
+                h5gg.setValue(Number(r.address) - 0x18C, 0, "I32");
+            }
+            h5gg.clearResults();
+            toast(getScriptName(16) + ' 完了');
+        }
+
+        function run17(v) {
+            h5gg.clearResults();
+            h5gg.searchNumber("8403089831969947648", "I64", "0x50000000", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (const r of results) {
+                h5gg.setValue(Number(r.address) + 0x60, v, "F32");
+            }
+            h5gg.clearResults();
+            toast(getScriptName(17) + ' 完了');
+        }
+
+        function run18(v) {
+            h5gg.clearResults();
+            h5gg.searchNumber("8403089831969947648", "I64", "0x50000000", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (const r of results) {
+                h5gg.setValue(Number(r.address) + 0x64, v, "F32");
+            }
+            h5gg.clearResults();
+            toast(getScriptName(18) + ' 完了');
+        }
+
+        function run19(v) {
+            h5gg.clearResults();
+            h5gg.searchNumber("8403089831969947648", "I64", "0x50000000", "0x200000000");
+            const results = h5gg.getResults(h5gg.getResultsCount());
+            for (const r of results) {
+                h5gg.setValue(Number(r.address) + 0x5c, v, "F32");
+            }
+            h5gg.clearResults();
+            toast(getScriptName(19) + ' 完了');
+        }
+    </script>
+</body>
+
+</html>
